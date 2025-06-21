@@ -92,6 +92,13 @@
     const icon = s.cyan ? CyanIcon : s.top ? StarIcon : GoldIcon;
     L.marker(s.coords,{icon}).addTo(map).bindPopup(s.n);
   });
+  /* ----- 5.  Fix WordPress “0-width” handshake ----- */
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    map.invalidateSize();          // force Leaflet to recalc container
+    map.fitBounds(bounds, {padding:[40,40]}); // recentre & correct zoom
+  }, 50);                          // tiny delay lets iframe finish sizing
+});
   </script>
 </body>
 </html>
