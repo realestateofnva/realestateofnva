@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>NoVA School-Pyramid Map • Townhomes & SFH (May 2025)</title>
+  <title>NoVA School-Pyramid Map • SFH+TH • May 2025</title>
 
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
@@ -22,11 +22,11 @@
     .gold-marker-icon{background:#b8954e}
     .cyan-marker-icon{background:#6dcad2}
 
-    /* Popup background */
+    /* Popup */
     .leaflet-popup-content-wrapper,
     .leaflet-popup-tip{background:#d9fffc;}
 
-    /* Hide optional zoom-slider add-on (we keep +/–) */
+    /* Hide zoom-slider add-on */
     .leaflet-control-zoomslider{display:none!important;}
   </style>
 </head>
@@ -35,9 +35,8 @@
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-  /* ---------- 1. SCHOOL DATA ---------- */
+  /* ---------- 1. DATA ---------- */
   const schools = [
-    /* Fairfax County */
     { n:'Langley HS<br>$1.695 M | +6%',            coords:[38.959,-77.183], top:true },
     { n:'McLean HS<br>$1.664 M | +6.3%',           coords:[38.938,-77.177] },
     { n:'Madison HS<br>$1.125 M | +5.3%',          coords:[38.893,-77.266] },
@@ -46,59 +45,57 @@
     { n:'West Springfield HS<br>$721 K | +2.2%',   coords:[38.779,-77.238] },
     { n:'NEW Fairfax STEM Magnet',                 coords:[38.935,-77.399], cyan:true },
 
-    /* Loudoun County */
     { n:'Riverside HS<br>$828 K | +3.4%',          coords:[39.112,-77.514], top:true },
     { n:'Loudoun Valley HS<br>$886 K | +5.4%',     coords:[39.134,-77.712] },
     { n:'Stone Bridge HS<br>$761 K | +3.1%',       coords:[39.030,-77.504] },
     { n:'Briar Woods HS<br>$899 K | +3.0%',        coords:[38.994,-77.521] },
     { n:'Potomac Falls HS<br>$750 K | +3.5%',      coords:[39.065,-77.361] },
 
-    /* Prince William County */
     { n:'Colgan HS<br>$742 K | +3.8%',             coords:[38.642,-77.455], top:true },
     { n:'Patriot HS<br>$765 K | +4.2%',            coords:[38.667,-77.581] },
     { n:'Gainesville HS<br>$756 K | +4.2%',        coords:[38.793,-77.609] },
     { n:'Brentsville District HS<br>$740 K | +3.8%',coords:[38.707,-77.533] },
     { n:'Battlefield HS<br>$835 K | +4.2%',        coords:[38.812,-77.647] },
 
-    /* Arlington County */
     { n:'Yorktown HS<br>$1.399 M | +4.7%',         coords:[38.898,-77.146], top:true },
     { n:'Washington–Liberty HS<br>$709 K | +1.7%', coords:[38.889,-77.107] },
     { n:'Wakefield HS<br>$635 K | +1.5%',          coords:[38.853,-77.111] },
 
-    /* Alexandria City */
     { n:'Alexandria City HS<br>$1.037 M | +3.1%',  coords:[38.820,-77.086] },
-
-    /* Falls Church City */
     { n:'Meridian HS<br>$1.051 M | +6.0%',         coords:[38.884,-77.181], top:true }
   ];
 
-  /* ---------- 2. MAP & TILE LAYER ---------- */
-  const map = L.map('map').fitBounds(
-    L.latLngBounds(schools.map(s => s.coords)),
-    { padding:[40,40] }
-  );
-
+  /* ---------- 2. MAP ---------- */
+  const bounds = L.latLngBounds(schools.map(s => s.coords));
+  const map = L.map('map');
   L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{
     maxZoom:20, subdomains:['mt0','mt1','mt2','mt3']
   }).addTo(map);
 
   /* ---------- 3. ICONS ---------- */
   const StarIcon = L.divIcon({className:'star-marker-icon',html:'★',iconSize:[38,38],popupAnchor:[0,-14]});
-  const GoldIcon = L.divIcon({className:'gold-marker-icon',        iconSize:[18,18],popupAnchor:[0,-6]});
-  const CyanIcon = L.divIcon({className:'cyan-marker-icon',        iconSize:[18,18],popupAnchor:[0,-6]});
+  const GoldIcon = L.divIcon({className:'gold-marker-icon',iconSize:[18,18],popupAnchor:[0,-6]});
+  const CyanIcon = L.divIcon({className:'cyan-marker-icon',iconSize:[18,18],popupAnchor:[0,-6]});
 
   /* ---------- 4. MARKERS ---------- */
   schools.forEach(s=>{
     const icon = s.cyan ? CyanIcon : s.top ? StarIcon : GoldIcon;
     L.marker(s.coords,{icon}).addTo(map).bindPopup(s.n);
   });
-  /* ----- 5.  Fix WordPress “0-width” handshake ----- */
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    map.invalidateSize();          // force Leaflet to recalc container
-    map.fitBounds(bounds, {padding:[40,40]}); // recentre & correct zoom
-  }, 50);                          // tiny delay lets iframe finish sizing
-});
+
+  /* ---------- 5.  ResizeObserver to fix 0-width load ---------- */
+  const ro = new ResizeObserver(entries=>{
+    for (const entry of entries){
+      const w = entry.contentRect.width;
+      const h = entry.contentRect.height;
+      if (w > 50 && h > 50){           // first time iframe hits real size
+        map.invalidateSize();
+        map.fitBounds(bounds,{padding:[40,40]});
+        ro.disconnect();               // done; stop observing
+      }
+    }
+  });
+  ro.observe(document.getElementById('map'));
   </script>
 </body>
 </html>
