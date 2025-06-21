@@ -30,7 +30,13 @@
   <div id="map"></div>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    const map=L.map('map').setView([38.95,-77.35],9);
+  const coords = schools.map(s => s.c);            // collect all marker coords
+  const bounds = L.latLngBounds(coords);           // build bounding box
+  const map  = L.map('map', { zoomControl: true }) // create map *after* bounds calc
+                 .fitBounds(bounds, {            // auto-zoom to show everything
+                   padding:  [40, 40]            // 40-px cushion inside the frame
+                 });
+    
     L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{maxZoom:20,subdomains:['mt0','mt1','mt2','mt3']}).addTo(map);
 
     const GoldIcon=L.divIcon({className:'gold-marker-icon',iconSize:[18,18],popupAnchor:[0,-6]});
